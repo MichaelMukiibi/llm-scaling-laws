@@ -174,7 +174,40 @@ def main():
         print(f"Epoch {epoch + 1}/{args.epochs} | Avg Loss: {avg_loss:.4f}")
         wandb.log({"epoch": epoch + 1, "avg_loss": avg_loss})
 
+    from flax import serialization
+
+    # Extract the tracked parameter state from the Flax NNX model
+    model_state = nnx.state(model)
+
+    # Unpack the custom State object into a raw Python dict of JAX arrays
+    pure_state_dict = nnx.to_pure_dict(model_state)
+
+    # Serialize the state PyTree into a secure msgpack byte stream
+    state_bytes = serialization.to_bytes(pure_state_dict)
+
+    # Save the serialized bytes to a local file
+    weights_path = "model_state.msgpack"
+    with open(weights_path, "wb") as f:
+        f.write(state_bytes)
+
+    # Initialize the W&B artifact container
+    artifact = wandb.Artifact(
+        name="transformer-addition-weights",
+        type="model",
+        description="Native Flax NNX model weights saved via msgpack serialization."
+    )
+
+    # Attach the file and push it to the active project run
+    artifact.add_file(weights_path)
+    wandb.log_artifact(artifact)
+
+    print("Model saved.")
+
     wandb.finish()
+
+    print("Training complete.")
+
+
 
 if __name__ == "__main__":
     main()
