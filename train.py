@@ -108,7 +108,7 @@ def loss_fn(model: TransformerLM, x: jnp.ndarray, y: jnp.ndarray) -> jnp.ndarray
 def train_step(model: TransformerLM, optimizer: nnx.Optimizer, x: jnp.ndarray, y: jnp.ndarray):
     grad_fn = nnx.value_and_grad(loss_fn)
     loss, grads = grad_fn(model, x, y)
-    optimizer.update(grads)
+    optimizer.update(grads, model)
     return loss
 
 # ==========================================
@@ -151,7 +151,7 @@ def main():
         num_layers=wandb.config.num_layers, 
         rngs=rngs
     )
-    optimizer = nnx.Optimizer(model, optax.adam(learning_rate=wandb.config.learning_rate))
+    optimizer = nnx.Optimizer(model, optax.adam(learning_rate=wandb.config.learning_rate), wrt=nnx.Param)
 
     steps_per_epoch = len(x_data) // args.batch_size
 
