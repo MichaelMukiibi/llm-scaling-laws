@@ -108,7 +108,7 @@ def loss_fn(model: TransformerLM, x: jnp.ndarray, y: jnp.ndarray) -> jnp.ndarray
 def train_step(model: TransformerLM, optimizer: nnx.Optimizer, x: jnp.ndarray, y: jnp.ndarray):
     grad_fn = nnx.value_and_grad(loss_fn)
     loss, grads = grad_fn(model, x, y)
-    optimizer.update(grads, model)
+    optimizer.update(model, grads)
     return loss
 
 # ==========================================
